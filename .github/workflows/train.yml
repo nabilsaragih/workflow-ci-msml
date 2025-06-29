@@ -21,19 +21,16 @@ jobs:
           environment-file: MLProject/conda.yaml
           auto-activate-base: false
 
-      - name: Install MLflow CLI and dependencies
+      - name: Install MLflow CLI
         shell: bash -l {0}
         run: |
           conda install pip -n msml
           conda run -n msml pip install mlflow[extras]
 
-      - name: Run training script with MLflow
+      - name: Run training script
         shell: bash -l {0}
         run: |
           conda run -n msml python MLProject/modelling.py --data_path MLProject/personality_preprocessing
-
-      - name: Debug - List mlruns directory
-        run: ls -R mlruns
 
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
@@ -62,10 +59,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mlruns
-          path: mlruns/
+          path: mlruns
 
       - name: Debug - List mlruns contents
-        run: ls -R mlruns/
+        run: ls -R mlruns
 
       - name: Build MLflow Docker image
         run: |
