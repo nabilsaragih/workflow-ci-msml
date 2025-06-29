@@ -44,7 +44,7 @@ jobs:
       - name: Install Python dependencies
         run: pip install mlflow
 
-      - name: Save MLruns to repo directory
+      - name: Upload to Google Drive
         run: |
           mkdir -p saved_artifacts
           cp -r MLProject/mlruns saved_artifacts/mlruns
@@ -75,7 +75,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Download MLruns artifact
+      - name: Download logged model artifact
         uses: actions/download-artifact@v4
         with:
           name: mlruns
@@ -97,10 +97,13 @@ jobs:
             exit 1
           fi
           echo "Found model at: $MODEL_PATH"
-          mlflow models build-docker -m $MODEL_PATH
+          mlflow models build-docker -m $MODEL_PATH --name ${{ secrets.DOCKER_IMAGE_NAME }}
+
+      - name: Log in to Docker Hub
+        run: echo "Already logged in via action above"
 
       - name: Tag Docker Image
-        run: docker tag mlflow-image:latest ${{ secrets.DOCKER_IMAGE_NAME }}
+        run: echo "Tag skipped, already built with correct name"
 
       - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}
