@@ -17,7 +17,7 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: rf_env
+          activate-environment: msml
           environment-file: MLProject/conda.yaml
           auto-activate-base: false
 
