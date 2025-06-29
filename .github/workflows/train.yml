@@ -67,10 +67,19 @@ jobs:
 
       - name: Build MLflow Docker image
         run: |
-          cd MLProject
-          MODEL_PATH=$(find mlruns -type d -path "*/artifacts/model" | head -n 1)
-          echo "Found model at: $MODEL_PATH"
-          mlflow models build-docker -m $MODEL_PATH
+            cd MLProject
+            echo "Searching for model in mlruns directory..."
+            find mlruns -type d -path "*/artifacts/model"
+
+            MODEL_PATH=$(find mlruns -type d -path "*/artifacts/model" | head -n 1)
+
+            if [ -z "$MODEL_PATH" ]; then
+            echo "No model path found. Make sure the model was logged correctly."
+            exit 1
+            fi
+
+            echo "Found model at: $MODEL_PATH"
+            mlflow models build-docker -m $MODEL_PATH
 
       - name: Tag Docker image
         run: docker tag mlflow-image:latest ${{ secrets.DOCKER_IMAGE_NAME }}
