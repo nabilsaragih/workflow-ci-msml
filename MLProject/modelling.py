@@ -15,7 +15,7 @@ data_dir = os.path.join(base_path, args.data_path)
 X_train = pd.read_csv(os.path.join(data_dir, "X_train_scaled.csv"))
 y_train = pd.read_csv(os.path.join(data_dir, "y_train.csv")).values.ravel()
 
-mlflow.set_tracking_uri("http://127.0.0.1:5000")
+mlflow.set_tracking_uri("file://" + os.path.abspath("mlruns"))
 mlflow.set_experiment("Random Forest Autolog Basic")
 mlflow.sklearn.autolog()
 
