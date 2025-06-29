@@ -70,7 +70,10 @@ jobs:
           cd MLProject
           MODEL_PATH=$(find mlruns -type d -path "*/artifacts/model" | head -n 1)
           echo "Found model at: $MODEL_PATH"
-          mlflow models build-docker -m $MODEL_PATH --name ${{ secrets.DOCKER_IMAGE_NAME }}
+          mlflow models build-docker -m $MODEL_PATH
+
+      - name: Tag Docker image
+        run: docker tag mlflow-image:latest ${{ secrets.DOCKER_IMAGE_NAME }}
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}
