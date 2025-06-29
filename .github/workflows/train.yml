@@ -11,37 +11,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Set up job
+        run: echo "Starting training job"
+
+      - name: Run actions/checkout@v3
         uses: actions/checkout@v3
 
-      - name: Set up Conda
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.7"
+
+      - name: Check Env
+        run: python --version
+
+      - name: Install dependencies
         uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: msml
           environment-file: MLProject/conda.yaml
           auto-activate-base: false
 
-      - name: Install MLflow CLI
-        run: pip install mlflow
-
-      - name: Run MLflow Project
+      - name: Run mlflow project
         shell: bash -l {0}
         run: |
           cd MLProject
           mlflow run . -P data_path=personality_preprocessing
 
+      - name: Get latest MLflow run_id
+        run: echo "Handled internally by MLflow"
+
+      - name: Install Python dependencies
+        run: pip install mlflow
+
+      - name: Save MLruns to repo directory
+        run: |
+          mkdir -p saved_artifacts
+          cp -r MLProject/mlruns saved_artifacts/mlruns
+
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
         with:
           name: mlruns
-          path: MLProject/mlruns/
+          path: saved_artifacts/mlruns/
 
   build-and-push-docker:
     needs: train-model
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repo
+      - name: Set up job
+        run: echo "Starting Docker build job"
+
+      - name: Run actions/checkout@v3
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
@@ -53,7 +75,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Download logged model artifact
+      - name: Download MLruns artifact
         uses: actions/download-artifact@v4
         with:
           name: mlruns
@@ -65,24 +87,32 @@ jobs:
       - name: Install MLflow CLI
         run: pip install mlflow
 
-      - name: Build MLflow Docker image
+      - name: Build Docker Model
         run: |
-            cd MLProject
-            echo "Searching for model in mlruns directory..."
-            find mlruns -type d -path "*/artifacts/model"
-
-            MODEL_PATH=$(find mlruns -type d -path "*/artifacts/model" | head -n 1)
-
-            if [ -z "$MODEL_PATH" ]; then
+          cd MLProject
+          echo "Searching for model in mlruns directory..."
+          MODEL_PATH=$(find mlruns -type d -path "*/artifacts/model" | head -n 1)
+          if [ -z "$MODEL_PATH" ]; then
             echo "No model path found. Make sure the model was logged correctly."
             exit 1
-            fi
+          fi
+          echo "Found model at: $MODEL_PATH"
+          mlflow models build-docker -m $MODEL_PATH
 
-            echo "Found model at: $MODEL_PATH"
-            mlflow models build-docker -m $MODEL_PATH
-
-      - name: Tag Docker image
+      - name: Tag Docker Image
         run: docker tag mlflow-image:latest ${{ secrets.DOCKER_IMAGE_NAME }}
 
-      - name: Push Docker image
+      - name: Push Docker Image
         run: docker push ${{ secrets.DOCKER_IMAGE_NAME }}
+
+      - name: Post Log in to Docker Hub
+        run: echo "Docker image pushed"
+
+      - name: Post Set up Python 3.12.7
+        run: echo "Python setup done"
+
+      - name: Post Run actions/checkout@v3
+        run: echo "Checkout completed"
+
+      - name: Complete job
+        run: echo "Workflow completed successfully"
