@@ -30,13 +30,13 @@ jobs:
       - name: Run training script
         shell: bash -l {0}
         run: |
-          conda run -n msml python MLProject/modelling.py --data_path MLProject/personality_preprocessing
+          conda run -n msml python MLProject/modelling.py --data_path personality_preprocessing
 
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
         with:
           name: mlruns
-          path: mlruns/
+          path: MLProject/mlruns
 
   build-and-push-docker:
     needs: train-model
@@ -59,13 +59,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mlruns
-          path: mlruns
+          path: MLProject/mlruns
 
       - name: Debug - List mlruns contents
-        run: ls -R mlruns
+        run: ls -R MLProject/mlruns
 
       - name: Build MLflow Docker image
         run: |
+          cd MLProject
           MODEL_PATH=$(find mlruns -type d -name "randomforest_model" | head -n 1)
           echo "Found model at: $MODEL_PATH"
           mlflow models build-docker -m $MODEL_PATH --name ${{ secrets.DOCKER_IMAGE_NAME }}
