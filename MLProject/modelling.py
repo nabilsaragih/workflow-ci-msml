@@ -9,8 +9,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="personality_preprocessing", help="Path ke folder dataset")
 args = parser.parse_args()
 
-X_train = pd.read_csv(os.path.join(args.data_path, "X_train_scaled.csv"))
-y_train = pd.read_csv(os.path.join(args.data_path, "y_train.csv")).values.ravel()
+base_path = os.path.dirname(__file__)
+data_dir = os.path.join(base_path, args.data_path)
+
+X_train = pd.read_csv(os.path.join(data_dir, "X_train_scaled.csv"))
+y_train = pd.read_csv(os.path.join(data_dir, "y_train.csv")).values.ravel()
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("Random Forest Autolog Basic")
