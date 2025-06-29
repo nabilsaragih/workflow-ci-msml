@@ -21,22 +21,25 @@ jobs:
           environment-file: MLProject/conda.yaml
           auto-activate-base: false
 
-      - name: Install MLflow CLI
+      - name: Install MLflow CLI and dependencies
         shell: bash -l {0}
         run: |
           conda install pip -n msml
           conda run -n msml pip install mlflow[extras]
 
-      - name: Run training script
+      - name: Run training script with MLflow
         shell: bash -l {0}
         run: |
-          conda run -n msml python MLProject/modelling.py --data_path personality_preprocessing
+          conda run -n msml python MLProject/modelling.py --data_path MLProject/personality_preprocessing
+
+      - name: Debug - List mlruns directory
+        run: ls -R mlruns
 
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
         with:
           name: mlruns
-          path: MLProject/mlruns
+          path: mlruns/
 
   build-and-push-docker:
     needs: train-model
@@ -59,14 +62,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mlruns
-          path: MLProject/mlruns
+          path: mlruns/
 
       - name: Debug - List mlruns contents
-        run: ls -R MLProject/mlruns
+        run: ls -R mlruns/
 
       - name: Build MLflow Docker image
         run: |
-          cd MLProject
           MODEL_PATH=$(find mlruns -type d -name "randomforest_model" | head -n 1)
           echo "Found model at: $MODEL_PATH"
           mlflow models build-docker -m $MODEL_PATH --name ${{ secrets.DOCKER_IMAGE_NAME }}
