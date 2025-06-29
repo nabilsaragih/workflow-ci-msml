@@ -25,9 +25,10 @@ jobs:
         run: pip install mlflow
 
       - name: Run MLflow Project
+        shell: bash -l {0}
         run: |
           cd MLProject
-          mlflow run . -P data_path=personality_preprocessing
+          mlflow run . -P data_path=personality_preprocessing --env-manager=local
 
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
