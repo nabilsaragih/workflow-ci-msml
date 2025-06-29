@@ -15,11 +15,8 @@ data_dir = os.path.join(base_path, args.data_path)
 X_train = pd.read_csv(os.path.join(data_dir, "X_train_scaled.csv"))
 y_train = pd.read_csv(os.path.join(data_dir, "y_train.csv")).values.ravel()
 
-mlflow.set_tracking_uri("file://" + os.path.abspath(os.path.join(base_path, "mlruns")))
-mlflow.set_experiment("Random Forest Autolog Basic")
 mlflow.sklearn.autolog()
 
-with mlflow.start_run():
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    print("Model dilatih dan dicatat dengan autolog.")
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+print("Model dilatih dan dicatat dengan autolog.")

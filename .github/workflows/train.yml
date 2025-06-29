@@ -28,7 +28,7 @@ jobs:
         shell: bash -l {0}
         run: |
           cd MLProject
-          mlflow run . -P data_path=personality_preprocessing --env-manager=local
+          mlflow run . -P data_path=personality_preprocessing
 
       - name: Upload MLruns as artifact
         uses: actions/upload-artifact@v4
